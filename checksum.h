@@ -8,17 +8,21 @@ enum HashType {
     HASH_SUM,
 };
 
-class MakeHash {
+class CheckSum {
     HashType m_hashtype;
 
     std::string makeMD5(std::ifstream &file);
     std::string makePlain(std::ifstream &file);
     std::string makeSHA256(std::ifstream &file);
     std::string makeSum(std::ifstream &file);
+    
     std::string bintostr(unsigned char*, size_t);
+
+    std::string digittostr(int);
+    std::string bytestostr(unsigned char*, size_t);
 public:
-    MakeHash(HashType hashtype = HASH_SHA256);
-    ~MakeHash();
+    CheckSum(HashType hashtype = HASH_SHA256);
+    ~CheckSum();
 
     std::string make(std::ifstream &file);
 };
