@@ -6,22 +6,7 @@ using namespace std;
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
-string CheckSum::makeMD5(ifstream &file) {
-    unsigned char hashstr[MD5_DIGEST_LENGTH] = { 0, };
-    MD5_CTX ctx;
-    MD5_Init(&ctx);
-
-    char buffer[1024];
-    while (!file.eof()) {
-        file.read(buffer, sizeof(buffer));
-        MD5_Update(&ctx, buffer, file.gcount());
-    }    
-    MD5_Final(hashstr, &ctx);
-
-    return bytestostr(hashstr, MD5_DIGEST_LENGTH);
-}
-
-string CheckSum::makeSHA256(ifstream &file) {
+string CheckSum::makeSHA256(istream &file) {
     unsigned char hashstr[SHA256_DIGEST_LENGTH] = { 0, };
     SHA256_CTX ctx;
     SHA256_Init(&ctx);
@@ -43,7 +28,7 @@ string CheckSum::makeSHA256(ifstream &file) {
 bool md5open(HCRYPTPROV& prov, HCRYPTHASH& hash);
 bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash);
 
-string CheckSum::makeMD5(ifstream &file) {
+string CheckSum::makeMD5(istream &file) {
     string result = "";
     HCRYPTPROV prov = NULL;
     HCRYPTHASH hash = NULL;
@@ -99,7 +84,7 @@ bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash) {
 bool sha256open(HCRYPTPROV& prov, HCRYPTHASH& hash);
 bool sha256close(HCRYPTPROV& prov, HCRYPTHASH& hash);
 
-string CheckSum::makeSHA256(ifstream &file) {
+string CheckSum::makeSHA256(istream &file) {
     string result = "";
     HCRYPTPROV prov = NULL;
     HCRYPTHASH hash = NULL;
@@ -153,22 +138,3 @@ bool sha256close(HCRYPTPROV& prov, HCRYPTHASH& hash) {
 }
 
 #endif
-
-string CheckSum::makeSum(ifstream &file) {
-    int checksum = 0;
-
-    char buffer[1024];
-    while (!file.eof()) {
-        file.read(buffer, sizeof(buffer));
-        int len = file.gcount();
-
-        for (int i=0; i < len; i++) {
-            int ch = buffer[i];
-            checksum = (checksum >> 1) + ((checksum & 1) << 15);
-            checksum += ch;
-            checksum &= 0xffff;
-        }
-    }
-
-    return digittostr(checksum);
-}

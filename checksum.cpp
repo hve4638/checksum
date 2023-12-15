@@ -8,13 +8,6 @@ using namespace std;
 
 static void splithex(unsigned char c, char& h, char& l);
 
-
-struct word {
-    char c[2];
-};
-
-
-
 CheckSum::CheckSum(HashType hashtype) {
     m_hashtype = hashtype;
 }
@@ -23,7 +16,12 @@ CheckSum::~CheckSum() {
     
 }
 
-string CheckSum::make(ifstream &file) {
+void CheckSum::sethashtype(HashType hashtype) {
+    m_hashtype = hashtype;
+}
+
+
+string CheckSum::make(istream &file) {
     switch(m_hashtype) {
     case HASH_SHA256:
         return makeSHA256(file);
@@ -37,7 +35,7 @@ string CheckSum::make(ifstream &file) {
     }
 }
 
-string CheckSum::makePlain(ifstream &file) {
+string CheckSum::makePlain(istream &file) {
     string plaintext = "";
 
     char buffer[1024];
