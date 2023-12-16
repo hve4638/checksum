@@ -13,7 +13,6 @@ using namespace filesystem;
 const char* output_file = NULL;
 CheckSum checksum;
 
-extern void test();
 extern void help();
 extern void version();
 
@@ -37,7 +36,7 @@ int main(int argc, const char **argv) {
     cargs_option(cargs, "lower", 0, opt_lower, 1);
     cargs_option(cargs, "r:recursive", 0, opt_recursive, 1);
     cargs_option(cargs, "o:output", 1, opt_output, 1);
-    cargs_option(cargs, "t:test", 0, opt_test, 1);
+    // cargs_option(cargs, "t:test", 0, opt_test, 1);
     cargs_args(cargs, handle_args);
     cargs_run(cargs, argc, argv);
     cargs_close(cargs);
@@ -48,13 +47,6 @@ int main(int argc, const char **argv) {
 void handle_args(int argc, const char **argv) {
     string result;
     checksum.sethashtype(hashtype);
-
-#if ENABLE_DEBUG == 1
-    if (opt['t']) {
-        test();
-        return;
-    }
-#endif
 
     if (opt['v']) {
         version();
@@ -189,7 +181,4 @@ void help() {
     cout << "  --help   \tdisplay this help" << endl;
     cout << "  --verbose\toutput version infomation" << endl;
     cout << "  --version\toutput version infomation" << endl;
-#if ENABLE_DEBUG == 1
-    cout << "  -t, --test   \ttest mode" << endl;
-#endif
 }
