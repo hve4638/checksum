@@ -1,10 +1,10 @@
 #include "checksum.h"
 
-using namespace std;
-
 #ifdef __LINUX
 #include <openssl/sha.h>
 #include <openssl/md5.h>
+
+using namespace std;
 
 string CheckSum::makeMD5(istream &file) {
     unsigned char hashstr[MD5_DIGEST_LENGTH] = { 0, };
@@ -23,62 +23,64 @@ string CheckSum::makeMD5(istream &file) {
 
 #endif
 #ifdef __WINDOWS
+#define DWORD_MD5_LENGTH 16
 #include <iostream>
 #include <windows.h>
 
-bool md5open(HCRYPTPROV& prov, HCRYPTHASH& hash);
-bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash);
+using namespace std;
+
+static bool md5open(HCRYPTPROV& prov, HCRYPTHASH& hash);
+static bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash);
+static void md5work(istream &file, unsigned char* result);
 
 string CheckSum::makeMD5(istream &file) {
-    string result = "";
-    HCRYPTPROV prov = NULL;
-    HCRYPTHASH hash = NULL;
+    unsigned char hash[DWORD_MD5_LENGTH];
 
-    if (!md5open(prov, hash)) {
-        return "";
-    }
-
-    char buffer[1024];
-    while (!file.eof()) {
-        file.read(buffer, sizeof(buffer));
-        CryptHashData(hash, (BYTE*)buffer, file.gcount(), 0);
-    }
-
-    DWORD hashsize;
-    DWORD bufsize = 0;
-    CryptGetHashParam(hash, HP_HASHSIZE, (BYTE*)&hashsize, &bufsize, 0);
-
-    unsigned char* md5Bytes = new unsigned char[hashsize];
-    CryptGetHashParam(hash, HP_HASHVAL, (BYTE*)md5Bytes, &hashsize, 0);
-    
-    result = bytestostr(md5Bytes, hashsize);
-
-    delete[] md5Bytes;
-
-    md5close(prov, hash);
-    return result;
+    md5work(file, hash);
+    return bytestostr(hash, DWORD_MD5_LENGTH);
 }
 
-bool md5open(HCRYPTPROV& prov, HCRYPTHASH& hash) {
-    if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-        md5close(prov, hash);
-        return FALSE;
+bool md5open(HCRYPTPROV& hProv, HCRYPTHASH& hHash) {
+    if (!CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
+        md5close(hProv, hHash);
+        return false;
     }
-    else if (!CryptCreateHash(prov, CALG_MD5, 0, 0, &hash)) {
-        md5close(prov, hash);
-        return FALSE;
+    else if (!CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash)) {
+        md5close(hProv, hHash);
+        return false;
     }
     else {
-        return TRUE;
+        return true;
     }
 }
 
-bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash) {
-    if (prov != NULL) CryptReleaseContext(prov, 0);
-    if (hash != NULL) CryptDestroyHash(hash);
+bool md5close(HCRYPTPROV& hProv, HCRYPTHASH& hHash) {
+    if (hHash != 0) CryptDestroyHash(hHash);
+    if (hProv != 0) CryptReleaseContext(hProv, 0);
 
-    prov = NULL;
-    hash = NULL;
-    return TRUE;
+    hProv = 0;
+    hHash = 0;
+    return true;
+}
+
+void md5work(istream &file, unsigned char* result) {
+    HCRYPTPROV prov = 0;
+    HCRYPTHASH hash = 0;
+    
+    if (!md5open(prov, hash)) {
+        result[0] = 0;
+    }
+    else {
+        char buffer[1024] = {0,};
+        while (!file.eof()) {
+            file.read(buffer, sizeof(buffer));
+            CryptHashData(hash, (BYTE*)buffer, file.gcount(), 0);
+        }
+
+        DWORD hashsize = DWORD_MD5_LENGTH;
+        CryptGetHashParam(hash, HP_HASHVAL, (BYTE*)result, &hashsize, 0);
+        
+        md5close(prov, hash);
+    }
 }
 #endif

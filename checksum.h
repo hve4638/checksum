@@ -18,8 +18,6 @@ class CheckSum {
     std::string makeSHA256(std::istream &file);
     std::string makeSum(std::istream &file);
     
-    std::string bintostr(unsigned char*, size_t);
-
     std::string digittostr(int);
     std::string bytestostr(unsigned char*, size_t);
 public:

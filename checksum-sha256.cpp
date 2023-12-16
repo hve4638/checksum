@@ -1,10 +1,10 @@
 #include "checksum.h"
 
-using namespace std;
-
 #ifdef __LINUX
 #include <openssl/sha.h>
 #include <openssl/md5.h>
+
+using namespace std;
 
 string CheckSum::makeSHA256(istream &file) {
     unsigned char hashstr[SHA256_DIGEST_LENGTH] = { 0, };
@@ -22,119 +22,63 @@ string CheckSum::makeSHA256(istream &file) {
 }
 #endif
 #ifdef __WINDOWS
+#define DWORD_SHA256_LENGTH 32
 #include <iostream>
 #include <windows.h>
 
-bool md5open(HCRYPTPROV& prov, HCRYPTHASH& hash);
-bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash);
+using namespace std;
 
-string CheckSum::makeMD5(istream &file) {
-    string result = "";
-    HCRYPTPROV prov = NULL;
-    HCRYPTHASH hash = NULL;
-
-    if (!md5open(prov, hash)) {
-        return "";
-    }
-
-    char buffer[1024];
-    while (!file.eof()) {
-        file.read(buffer, sizeof(buffer));
-        CryptHashData(hash, (BYTE*)buffer, file.gcount(), 0);
-    }
-
-    DWORD hashsize;
-    DWORD bufsize = 0;
-    CryptGetHashParam(hash, HP_HASHSIZE, (BYTE*)&hashsize, &bufsize, 0);
-
-    unsigned char* md5Bytes = new unsigned char[hashsize];
-    CryptGetHashParam(hash, HP_HASHVAL, (BYTE*)md5Bytes, &hashsize, 0);
-    
-    result = bytestostr(md5Bytes, hashsize);
-
-    delete[] md5Bytes;
-
-    md5close(prov, hash);
-    return result;
-}
-
-bool md5open(HCRYPTPROV& prov, HCRYPTHASH& hash) {
-    if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-        md5close(prov, hash);
-        return FALSE;
-    }
-    else if (!CryptCreateHash(prov, CALG_MD5, 0, 0, &hash)) {
-        md5close(prov, hash);
-        return FALSE;
-    }
-    else {
-        return TRUE;
-    }
-}
-
-bool md5close(HCRYPTPROV& prov, HCRYPTHASH& hash) {
-    if (prov != NULL) CryptReleaseContext(prov, 0);
-    if (hash != NULL) CryptDestroyHash(hash);
-
-    prov = NULL;
-    hash = NULL;
-    return TRUE;
-}
-
-bool sha256open(HCRYPTPROV& prov, HCRYPTHASH& hash);
-bool sha256close(HCRYPTPROV& prov, HCRYPTHASH& hash);
+static bool sha256open(HCRYPTPROV& prov, HCRYPTHASH& hash);
+static bool sha256close(HCRYPTPROV& prov, HCRYPTHASH& hash);
+static void sha256work(istream &file, unsigned char* result);
 
 string CheckSum::makeSHA256(istream &file) {
-    string result = "";
-    HCRYPTPROV prov = NULL;
-    HCRYPTHASH hash = NULL;
+    unsigned char hash[DWORD_SHA256_LENGTH];
     
-    if (!sha256open(prov, hash)) {
-        return "";
-    }
-
-    char buffer[1024];
-    while (!file.eof()) {
-        file.read(buffer, sizeof(buffer));
-        CryptHashData(hash, (BYTE*)buffer, file.gcount(), 0);
-    }
-
-    DWORD hashsize;
-    DWORD bufsize = 0;
-    CryptGetHashParam(hash, HP_HASHSIZE, (BYTE*)&hashsize, &bufsize, 0);
-
-    unsigned char* md5Bytes = new unsigned char[hashsize];
-    CryptGetHashParam(hash, HP_HASHVAL, (BYTE*)md5Bytes, &hashsize, 0);
-    
-    result = bytestostr(md5Bytes, hashsize);
-
-    delete[] md5Bytes;
-
-    sha256close(prov, hash);
-    return result;
+    sha256work(file, hash);
+    return bytestostr(hash, DWORD_SHA256_LENGTH);
 }
 
 bool sha256open(HCRYPTPROV& prov, HCRYPTHASH& hash) {
-    if (!CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
+    if (!CryptAcquireContext(&prov, 0, 0, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
         sha256close(prov, hash);
-        return FALSE;
+        return false;
     }
     else if (!CryptCreateHash(prov, CALG_SHA_256, 0, 0, &hash)) {
         sha256close(prov, hash);
-        return FALSE;
+        return false;
     }
     else {
-        return TRUE;
+        return true;
     }
 }
 
 bool sha256close(HCRYPTPROV& prov, HCRYPTHASH& hash) {
-    if (prov != NULL) CryptReleaseContext(prov, 0);
-    if (hash != NULL) CryptDestroyHash(hash);
+    if (prov != 0) CryptReleaseContext(prov, 0);
+    if (hash != 0) CryptDestroyHash(hash);
 
-    prov = NULL;
-    hash = NULL;
-    return TRUE;
+    prov = 0;
+    hash = 0;
+    return true;
+}
+
+void sha256work(istream &file, unsigned char* result) {
+    HCRYPTPROV prov = 0;
+    HCRYPTHASH hash = 0;
+    
+    if (!sha256open(prov, hash)) {
+        result[0] = 0;
+    }
+    else {
+        char buffer[1024];
+        while (!file.eof()) {
+            file.read(buffer, sizeof(buffer));
+            CryptHashData(hash, (BYTE*)buffer, file.gcount(), 0);
+        }
+
+        DWORD hashsize = DWORD_SHA256_LENGTH;
+        CryptGetHashParam(hash, HP_HASHVAL, (BYTE*)result, &hashsize, 0);
+    }
 }
 
 #endif

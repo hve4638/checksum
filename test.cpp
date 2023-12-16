@@ -1,7 +1,7 @@
 #include <iostream>
 #include <filesystem>
 #include "checksum.h"
-#include "unity/unity.h"
+#include "unittest/unity.h"
 
 using namespace std;
 using namespace filesystem;
@@ -33,6 +33,7 @@ void test_md5(void) {
 int main() {
     UNITY_BEGIN();
 
+    RUN_TEST(test_openfile);
     RUN_TEST(test_md5);
     RUN_TEST(test_sha256);
     
@@ -41,9 +42,4 @@ int main() {
 
 /*
     test api : https://github.com/ThrowTheSwitch/Unity/blob/master/README.md
-
-TEST_ASSERT_EQUAL_STRING(expected, actual)
-TEST_ASSERT_EQUAL_STRING_LEN(expected, actual, len)
-TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, actual, message)
-TEST_ASSERT_EQUAL_STRING_LEN_MESSAGE(expected, actual, len, message)
 */

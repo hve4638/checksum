@@ -6,8 +6,6 @@
 
 using namespace std;
 
-static void splithex(unsigned char c, char& h, char& l);
-
 CheckSum::CheckSum(HashType hashtype) {
     m_hashtype = hashtype;
 }
@@ -49,26 +47,15 @@ string CheckSum::makePlain(istream &file) {
     return plaintext;
 }
 
-string CheckSum::bytestostr(unsigned char* buffer, size_t length) {
-    char h, l;
-    string result = "";
-
-    for (size_t i = 0; i < length; i++) {
-        splithex(buffer[i], h, l);
-
-        result += h;
-        result += l;
+string CheckSum::bytestostr(unsigned char* buf, size_t length) {
+    string result;
+    static char digits[] = "0123456789abcdef";
+    
+    for(size_t i = 0; i < length; i++) {
+        result += digits[buf[i] >> 4];
+        result += digits[buf[i] & 0xf];
     }
-
     return result;
-}
-
-void splithex(unsigned char c, char& h, char& l) {
-    int _h = (c & (0xF0)) >> 4;
-    int _l = (c & (0x0F));
-
-    h = (_h < 10) ? ('0' + _h) : ('A' + _h - 10);
-    l = (_l < 10) ? ('0' + _l) : ('A' + _l - 10);
 }
 
 string CheckSum::digittostr(int num) {

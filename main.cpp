@@ -4,7 +4,8 @@
 #include "checksum.h"
 #include "cargs.h"
 #include "opt.h"
-#define VERSION "1.1"
+#define PROGRAM_NAME "Checksum"
+#define VERSION "1.10"
 #define ENABLE_DEBUG (1)
 
 using namespace std;
@@ -33,7 +34,7 @@ int main(int argc, const char **argv) {
     // cargs_option(cargs, "plain", 0, opt_plain, 1);
     cargs_option(cargs, "version", 0, opt_version, 1);
     cargs_option(cargs, "h:help", 0, opt_help, 1);
-    cargs_option(cargs, "lower", 0, opt_lower, 1);
+    //cargs_option(cargs, "lower", 0, opt_lower, 1);
     cargs_option(cargs, "r:recursive", 0, opt_recursive, 1);
     cargs_option(cargs, "o:output", 1, opt_output, 1);
     // cargs_option(cargs, "t:test", 0, opt_test, 1);
@@ -127,7 +128,7 @@ void makehash_recursive(const char* dirname, ostream& output) {
 
 void makehash_single(const char* target, ostream& output, bool showname) {
     path file = target;
-    ifstream input(target);
+    ifstream input(target, std::ios::binary);
     
     if (is_directory(file)) {
         show_openerr(target, "skip");
@@ -162,7 +163,7 @@ void makehash(istream& input, ostream& output, const char* name) {
 }   
 
 void version() {
-    cout << VERSION << endl;
+    cout << PROGRAM_NAME << " " << VERSION << endl;
 }
 
 void help() {
@@ -175,10 +176,10 @@ void help() {
     cout << "  --md5    \tuse MD5" << endl;
     cout << "  --sha256 \tuse SHA256" << endl;
     cout << "  --plain  \tuse no algorithm" << endl;
-    cout << "  --lower  \tuse no algorithm" << endl;
+    //cout << "  --lower  \tuse no algorithm" << endl;
     cout << "  -r, --recursive \tcheck directory recursively" << endl;
     cout << "  -o, --output \tcheck directory recursively" << endl;
     cout << "  --help   \tdisplay this help" << endl;
-    cout << "  --verbose\toutput version infomation" << endl;
+    //cout << "  --verbose\toutput version infomation" << endl;
     cout << "  --version\toutput version infomation" << endl;
 }
