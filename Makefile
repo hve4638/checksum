@@ -5,6 +5,7 @@ TESTOBJ= test.o unity.o printbuffer.o
 TARGETOBJ=main.o
 TARGET=checksum
 TEST=test
+VERSION=0.0.0
 
 ifeq ($(OS),Windows_NT)
 	# Windows
@@ -45,7 +46,7 @@ printbuffer.o: unittest/printbuffer.c unittest/printbuffer.h
 debug.o: debug.cpp checksum.h cargs.h opt.h
 	$(CC) -c -o $@ debug.cpp $(TAGS) $(CFLAGS)
 main.o: main.cpp checksum.h cargs.h opt.h
-	$(CC) -c -o $@ main.cpp $(TAGS) $(CFLAGS)
+	$(CC) -c -o $@ main.cpp $(TAGS) $(CFLAGS) -DVERSION=\"$(VERSION)\"
 opt.o: opt.cpp opt.h
 	$(CC) -c -o $@ opt.cpp $(TAGS) $(CFLAGS)
 checksum.o: checksum.cpp checksum.h

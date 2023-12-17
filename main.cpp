@@ -1,12 +1,16 @@
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME "Checksum"
+#endif
+#ifndef VERSION
+#define VERSION "0.0.0"
+#endif
+
 #include <iostream>
 #include <memory>
 #include <filesystem>
 #include "checksum.h"
 #include "cargs.h"
 #include "opt.h"
-#define PROGRAM_NAME "Checksum"
-#define VERSION "1.10"
-#define ENABLE_DEBUG (1)
 
 using namespace std;
 using namespace filesystem;
