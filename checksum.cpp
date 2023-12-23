@@ -49,7 +49,7 @@ string CheckSum::makePlain(istream &file) {
 
 string CheckSum::bytestostr(unsigned char* buf, size_t length) {
     string result;
-    static char digits[] = "0123456789abcdef";
+    static char digits[] = "0123456789ABCDEF";
     
     for(size_t i = 0; i < length; i++) {
         result += digits[buf[i] >> 4];

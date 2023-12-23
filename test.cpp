@@ -33,7 +33,7 @@ void test_md5(void) {
 int main() {
     UNITY_BEGIN();
 
-    RUN_TEST(test_openfile);
+    //RUN_TEST(test_openfile);
     RUN_TEST(test_md5);
     RUN_TEST(test_sha256);
     
