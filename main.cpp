@@ -44,8 +44,6 @@ ostream* setup_output(const char*);
 void teardown_output(ostream*);
 MakeHashOption make_option();
 
-void printbuffer(void* buffer, size_t length, size_t interval);
-
 inline void show_openerr(string filename, const char* signiture) {
     cerr << "could not open : " << filename << " (" << signiture << ")" << endl;
 }
@@ -57,7 +55,6 @@ int main(int argc, const char **argv) {
     cargs_option(cargs, "md5", 0, opt_md5, 1);
     cargs_option(cargs, "sha256", 0, opt_sha256, 1);
     cargs_option(cargs, "sum", 0, opt_sum, 1);
-    // cargs_option(cargs, "plain", 0, opt_plain, 1);
     cargs_option(cargs, "verbose", 0, opt_verbose, 1);
     cargs_option(cargs, "version", 0, opt_version, 1);
     cargs_option(cargs, "h:help", 0, opt_help, 1);
@@ -155,7 +152,7 @@ void help() {
     cout << "  --md5           \tuse MD5" << endl;
     cout << "  --sha256        \tuse SHA256" << endl;
     cout << "  -u, --upper     \toutput in uppercase" << endl;
-    cout << "  -l, --lower     \toutput in lowercase" << endl;
+    cout << "  -l, --lower     \toutput in lowercase (default)" << endl;
     cout << "  -r, --recursive \tcheck directory recursively" << endl;
     cout << "  -e, --elapsed   \tdisplay execution time (stderr)" << endl;
     cout << "  -o, --output    \toutput as file" << endl;
@@ -191,9 +188,15 @@ void teardown_output(ostream* output) {
 
 MakeHashOption make_option() {
     MakeHashOption option = { 0, };
+
+    option.lower = true;
     if (opt['l']) {
         option.lower = true;
     }
+    if (opt['u']) {
+        option.lower = false;
+    }
+
     if (opt['V']) {
         option.verbose = true;
     }
@@ -213,36 +216,4 @@ MakeHashOption make_option() {
     }
     
     return option;
-}
-
-void printbuffer(void* buffer, size_t length, size_t interval) {
-	const unsigned char* buf = (const unsigned char*)buffer;
-
-	printf("        \t");
-	for (size_t i = 0; i < interval; i++) {
-		printf("%2X ", (int)i);
-	}
-	printf("\n");
-
-	for (size_t pos = 0; pos < length; pos += interval) {
-		printf("%08X\t", (int)pos);
-
-		for (size_t i = 0; i < interval; i++) {
-			if (pos + i < length) printf("%02X ", buf[pos + i]);
-			else printf("   ");
-		}
-		printf("\t");
-		for (size_t i = 0; i < interval; i++) {
-			if (pos + i >= length) break;
-			size_t ch = buf[pos + i];
-
-			if (ch >= 0x21 && ch <= 0x7E) { // printable char
-				printf("%c", (int)ch);
-			}
-			else {
-				printf(".");
-			}
-		}
-		printf("\n");
-	}
 }

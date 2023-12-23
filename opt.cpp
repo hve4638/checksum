@@ -36,6 +36,9 @@ void opt_sum(int argc, const char **argv) {
 void opt_lower(int argc, const char **argv) {
     opt['l'] = true;
 }
+void opt_upper(int argc, const char **argv) {
+    opt['u'] = true;
+}
 void opt_help(int argc, const char **argv) {
     opt['h'] = true;
 }

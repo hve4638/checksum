@@ -1,4 +1,3 @@
-// For temporary test
 #include <iostream>
 #include <locale>
 #include <fstream>

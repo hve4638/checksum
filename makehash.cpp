@@ -29,12 +29,14 @@ MakeHash::~MakeHash() {
 
 MakeHash& MakeHash::setOption(MakeHashOption option) {
     m_option = option;
+    /*
     VERBOSE_OUT("[MakeHashOption]");
     VERBOSE_OUT("  verbose: " << m_option.verbose);
     VERBOSE_OUT("  lowercase: " << m_option.lower);
     VERBOSE_OUT("  showFilename: " << m_option.showFilename);
     VERBOSE_OUT("  useThreading: " << m_option.useThreading);
     VERBOSE_OUT("  maxinumThread: " << m_option.maxinumThread);
+    */
     return *this;
 }
 MakeHash& MakeHash::setOutput(std::ostream &out) {

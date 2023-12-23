@@ -18,6 +18,7 @@ void opt_sha256(int, const char**);
 void opt_sum(int, const char**);
 void opt_jobs(int, const char**);
 void opt_lower(int, const char**);
+void opt_upper(int, const char **);
 void opt_recursive(int, const char**);
 void opt_output(int, const char**);
 void opt_test(int, const char**);
