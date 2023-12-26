@@ -15,6 +15,7 @@ void opt_verbose(int, const char**);
 void opt_plain(int, const char**);
 void opt_md5(int, const char**);
 void opt_sha256(int, const char**);
+void opt_mock(int, const char**);
 void opt_sum(int, const char**);
 void opt_jobs(int, const char**);
 void opt_lower(int, const char**);

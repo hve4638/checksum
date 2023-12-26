@@ -25,6 +25,8 @@ public:
     void hashStdin();
     void hashFile(std::filesystem::path filename);
     void hashDir(std::filesystem::path dirname);
+    void mockHashFile(std::filesystem::path filename);
+    void mockHashDir(std::filesystem::path path);
 private:
     void make(std::istream& input, std::string name);
     bool verbose();

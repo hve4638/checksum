@@ -77,6 +77,22 @@ void MakeHash::hashDir(std::filesystem::path path) {
     }
 }
 
+void MakeHash::mockHashFile(std::filesystem::path path) {
+    *m_output << path << endl;
+}
+void MakeHash::mockHashDir(std::filesystem::path path) {
+    if (fs::is_regular_file(path)) {
+        *m_output << path << endl;
+    }
+    else if (fs::is_directory(path)) {
+        for (const auto& entry : fs::recursive_directory_iterator(path)) {
+            if (fs::is_regular_file(entry)) {
+                mockHashFile(entry.path());
+            }
+        }
+    }
+}
+
 void MakeHash::make(istream& input, string name) {
     string result = m_checksum.make(input);
     if (m_option.lower) {

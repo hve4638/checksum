@@ -30,6 +30,9 @@ void opt_md5(int argc, const char **argv) {
 void opt_sha256(int argc, const char **argv) {
     hashtype = HASH_SHA256;
 }
+void opt_mock(int argc, const char**argv) {
+    opt['m'] = true;
+}
 void opt_sum(int argc, const char **argv) {
     hashtype = HASH_SUM;
 }

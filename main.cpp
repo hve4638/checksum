@@ -5,6 +5,7 @@
 #define VERSION "0.0.0"
 #endif
 #define TRACE() cout << "[" << __FILE__ << ":" << __LINE__ << "] " << endl
+#define VERBOSE_OUT(X) if (opt['V']) cerr << X << endl
 
 #include <iostream>
 #include <memory>
@@ -24,6 +25,7 @@ using namespace filesystem;
 class Clock {
     clock_t m_begin = 0, m_end = 0;
 public:
+    Clock() {}
     void start() {
         m_begin = clock();
     }
@@ -42,7 +44,10 @@ void version();
 
 ostream* setup_output(const char*);
 void teardown_output(ostream*);
-MakeHashOption make_option();
+MakeHashOption make_option(int, const char**);
+
+void makehash(MakeHash&, int, const char**);
+void makehash_mock(MakeHash&, int, const char**);
 
 inline void show_openerr(string filename, const char* signiture) {
     cerr << "could not open : " << filename << " (" << signiture << ")" << endl;
@@ -57,6 +62,7 @@ int main(int argc, const char **argv) {
     cargs_option(cargs, "sum", 0, opt_sum, 1);
     cargs_option(cargs, "verbose", 0, opt_verbose, 1);
     cargs_option(cargs, "version", 0, opt_version, 1);
+    cargs_option(cargs, "m:mock", 0, opt_mock, 1);
     cargs_option(cargs, "h:help", 0, opt_help, 1);
     cargs_option(cargs, "j:jobs", 1, opt_jobs, 1);
     cargs_option(cargs, "l:lower", 0, opt_lower, 1);
@@ -85,56 +91,39 @@ void handle_args(int argc, const char **argv) {
         return;
     }
 
+    VERBOSE_OUT("Setup output");
     ostream *output = setup_output(optarg_output);
     if (output == nullptr) {
         show_openerr(optarg_output, "exit");
         return;
     }
+    VERBOSE_OUT("Setup output : done");
 
-    MakeHash makehash(checksum);
-    MakeHashOption option = make_option();
-    makehash.setOutput(*output);
+    MakeHash hash(checksum);
+    MakeHashOption option = make_option(argc, argv);
+    hash.setOutput(*output);
+    hash.setOption(option);
 
+    VERBOSE_OUT("In makehash progress");
     clock.start();
-    if (opt['r']) { // recursive mode
-        if (argc == 0) {
-            help();
-        }
-        else {
-            option.showFilename = true;
-            makehash.setOption(option);
-
-            for (int i = 0; i < argc; i++) {
-                makehash.hashDir(argv[i]); 
-            }
-        }
+    
+    if (opt['m']) {
+        makehash_mock(hash, argc, argv);
     }
     else {
-        if (argc == 0) {
-            makehash.setOption(option);
-            makehash.hashStdin();
-        }
-        else if (argc == 1) {
-            makehash.setOption(option);
-            makehash.hashFile(argv[0]);
-        }
-        else {
-            option.showFilename = true;
-            makehash.setOption(option);
-
-            for (int i = 0; i < argc; i++) {
-                makehash.hashFile(argv[0]);
-            }
-        }
+        makehash(hash, argc, argv);
     }
-
-    teardown_output(output);
     clock.stop();
+    VERBOSE_OUT("In makehash progress : done");
+    
+    VERBOSE_OUT("Teardown output");
+    teardown_output(output);
+    VERBOSE_OUT("Teardown output : done");
 
-    if (opt['e']) {
+    if (opt['e'] || opt['V']) {
         auto duration = clock.duration();
         cerr << endl;
-        cerr << "Elapsed time : " << (double)duration/1000 << "s" << endl;
+        cerr << "Elapsed time : " << ((double)duration/CLOCKS_PER_SEC) << "s" << endl;
     }
 }
 
@@ -163,6 +152,7 @@ void help() {
 
 ostream* setup_output(const char* filename) {
     if (opt['o']) {
+        VERBOSE_OUT("use filestream output");
         ofstream* file = new ofstream(filename);
         if (file->is_open()) {
             return file;
@@ -174,19 +164,21 @@ ostream* setup_output(const char* filename) {
         }
     }
     else {
+        VERBOSE_OUT("use stdout");
         return &cout;
     }
 }
 
 void teardown_output(ostream* output) {
     if (output != &cout) {
-        ofstream* file = reinterpret_cast<ofstream*>(file);
+        VERBOSE_OUT("free filestream");
+        ofstream* file = reinterpret_cast<ofstream*>(output);
         file->close();
         delete output;
     }
 }
 
-MakeHashOption make_option() {
+MakeHashOption make_option(int argc, const char** argv) {
     MakeHashOption option = { 0, };
 
     option.lower = true;
@@ -214,6 +206,59 @@ MakeHashOption make_option() {
             option.maxinumThread = optarg_jobs;
         }
     }
+    if (opt['r'] || argc > 1) {
+        option.showFilename = true;
+    }
+    else {
+        option.showFilename = false;
+    }
     
     return option;
+}
+
+void makehash(MakeHash& hash, int argc, const char** argv) {
+    if (opt['r']) {
+        if (argc == 0) {
+            help();
+        }
+        else {
+            for (int i = 0; i < argc; i++) {
+                hash.hashDir(argv[i]); 
+            }
+        }
+    }
+    else {
+        if (argc == 0) {
+            hash.hashStdin();
+        }
+        else if (argc == 1) {
+            hash.hashFile(argv[0]);
+        }
+        else {
+            for (int i = 0; i < argc; i++) {
+                hash.hashFile(argv[i]);
+            }
+        }
+    }
+}
+
+void makehash_mock(MakeHash& hash, int argc, const char** argv) {
+    if (opt['r']) {
+        for (int i = 0; i < argc; i++) {
+            hash.mockHashDir(argv[i]); 
+        }
+    }
+    else {
+        if (argc == 0) {
+            cerr << "Could not make hash in stdin at mock mode (kkip)" << endl;
+        }
+        else if (argc == 1) {
+            hash.mockHashFile(argv[0]);
+        }
+        else {
+            for (int i = 0; i < argc; i++) {
+                hash.mockHashFile(argv[i]);
+            }
+        }   
+    }
 }
